@@ -390,3 +390,67 @@ HashTable 和 ConcurrentHashMap 的 Key 是 不可以 为 null 的（会报空�
 - 扩容机制：HashMap初始16，每次扩容x2，用位运算优化取模。HashTable初始11，每次扩容x2+1，老老实实取模运算比较慢。
 
 ### ConcurrentHashMap怎么实现的？
+
+JDK1.7中使用的是数组加链表形式实现，采用的“分段锁”机制 。
+它把大 Map 切分成了 16 个 Segment（子哈希表），每个 Segment 继承自 ReentrantLock。锁的粒度是 Segment 。意味着默认最多只能支持 16 个线程并发，再多就要排队，并发上限较低。
+
+JDK 1.8 ，采用了“CAS + synchronized”机制。数据结构是数组+链表+红黑树。锁的粒度细化到了数组的头节点（Node）。
+
+1. 对于空桶：直接利用 CAS 原子操作插入，全程无锁。
+2. 对于冲突桶：只用 synchronized 锁住当前链表或红黑树的头节点，其他桶完全不受影响。
+   这使得并发度从固定的 16 提升到了整个数组的大小，并发性能得到了质的飞跃。
+
+### 已经用了synchronized，为什么还要用CAS呢？
+
+synchronized是软件层面的悲观锁，适用于步骤复杂的场景，比如HashMap桶里有数据，需要遍历链表，对比key，替换value，追加到尾部，转红黑树等操作，涉及多个步骤，需要用synchronized锁住头节点，阻塞抢不到锁的线程。
+
+而CAS是乐观锁，或者说是硬件层面的缓存锁，一次只能锁一个内存地址，适用于处理简单逻辑的场景，比如空桶，只要把数据放在这个位置就行，只涉及一个内存地址，用CAS更快。
+
+### HashTable 底层实现原理是什么？
+
+- Hashtable的底层数据结构主要是**数组加上链表**，数组是主体，链表是解决hash冲突存在的。
+- HashTable是线程安全的，实现方式是**Hashtable的所有公共方法均采用synchronized关键字**，当一个线程访问同步方法，另一个线程也访问的时候，就会陷入阻塞或者轮询的状态。
+
+### HashTable线程安全是怎么实现的？
+
+用synchronized标记每个方法或者代码块，任意时刻只能有一个线程操作HashTable，其他线程暂时无法访问
+
+### 说一下HashMap和Hashtable、ConcurrentMap的区别
+
+- HashMap
+  - 线程安全性 ：不安全，无锁，效率最高。
+  - Null 支持 ：允许 1 个 key 为 null，多个 value 为 null。
+  - 数据结构 ：JDK 1.8 采用 数组 + 链表 + 红黑树 。当链表长度 > 8 且数组长度 > 64 时转为红黑树。
+  - 扩容机制 ：初始容量 16，每次扩容 x2 （2的幂次方），使用高位运算优化。
+- Hashtable
+  - 线程安全性 ：安全，全表锁（所有方法加 synchronized），效率最低，已淘汰。
+  - Null 支持 ： 不允许 key 或 value 为 null。
+  - 数据结构 ： 数组 + 链表 （没有红黑树）。
+  - 扩容机制 ：初始容量 11，每次扩容 x2 + 1 。
+
+- ConcurrentHashMap
+  - 线程安全性 ：安全，效率高（分段/细粒度锁）。
+  - Null 支持 ： 不允许 key 或 value 为 null。
+  - 数据结构 ：
+    - JDK 1.7 ： Segment 数组 + HashEntry 数组 + 链表 。
+    - JDK 1.8 ： 数组 + 链表 + 红黑树 （同 HashMap）。
+  - 扩容/锁机制 ：
+    - JDK 1.7 ：采用 分段锁 (Segment) ，锁粒度是 Segment，并发度默认为 16。
+    - JDK 1.8 ：抛弃 Segment，采用 CAS + synchronized 。锁粒度是 数组头节点 ，并发度为数组长度。空桶用 CAS 插入，冲突时用 synchronized 锁住头节点。
+
+
+## Set
+
+### Set集合有什么特点？如何实现key无重复的？
+
+- **set集合特点**：Set集合中的元素是唯一的，不会出现重复的元素。
+- **set实现原理**：Set集合通过内部的数据结构（如哈希表、红黑树等）来实现key的无重复。当向Set集合中插入元素时，会先根据元素的hashCode值来确定元素的存储位置，然后再通过equals方法来判断是否已经存在相同的元素，如果存在则不会再次插入，保证了元素的唯一性。
+
+### 有序的Set是什么？记录插入顺序的集合是什么？
+
+- **有序的 Set 是TreeSet和LinkedHashSet**。TreeSet是基于红黑树实现，保证元素的自然顺序。LinkedHashSet是基于双重链表和哈希表的结合来实现元素的有序存储，保证元素添加的自然顺序
+- **记录插入顺序的集合通常指的是LinkedHashSet**，它不仅保证元素的唯一性，还可以保持元素的插入顺序。当需要在Set集合中记录元素的插入顺序时，可以选择使用LinkedHashSet来实现。
+
+- 要 大小有序 （升序/降序）：用 TreeSet 。
+- 要 插入有序 （先来后到）：用 LinkedHashSet 。
+- 啥顺序都不管（只要快）：用 HashSet 。
