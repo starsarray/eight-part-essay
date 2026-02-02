@@ -1,3 +1,7 @@
+[toc]
+
+---
+
 ## 概念
 
 ### Java的特点：
@@ -49,7 +53,7 @@ java采用解释+JIT编译的混合模式，是一种智能权衡：
 - 包装类除了char是Character，int是Integer，其他都是首字母大写
 - char是无符号，从0开始
 
-#### 数据类型的转换方式有哪些？
+### 数据类型的转换方式有哪些？
 
 - 自动类型转换（隐式转换）
 - 强制类型转换（显示转换）：目标类型 变量名 = （目标类型）源类型
@@ -439,8 +443,7 @@ finally块中的return语句会覆盖try块中的return返回，因此，该语�
 
 Object类是Java中所有类的超类，每个类都直接或间接继承Object类。它定义了以下11个方法：
 
-
-#### **1. 基本信息获取**
+**1. 基本信息获取**
 
 - **`Class<?> getClass()`**
   返回对象的运行时类（Class对象），用于反射。
@@ -449,17 +452,17 @@ Object类是Java中所有类的超类，每个类都直接或间接继承Object�
 - **`String toString()`**
   返回对象的字符串表示，默认格式为`类名@哈希码`。
 
-#### **2. 对象比较**
+**2. 对象比较**
 
 - **`boolean equals(Object obj)`**
   判断两个对象是否相等，默认比较对象地址（与==相同）。
 
-#### **3. 对象克隆**
+**3. 对象克隆**
 
 - **`protected Object clone() throws CloneNotSupportedException`**
   创建并返回对象的副本（浅拷贝），需要实现Cloneable接口。
 
-#### **4. 线程同步（多线程相关）**
+**4. 线程同步（多线程相关）**
 
 - **`final void wait()`**
   使当前线程等待，直到另一个线程调用此对象的`notify()`或`notifyAll()`。
@@ -472,43 +475,43 @@ Object类是Java中所有类的超类，每个类都直接或间接继承Object�
 - **`final void notifyAll()`**
   唤醒在此对象监视器上等待的所有线程。
 
-#### **5. 垃圾回收**
+**5. 垃圾回收**
 
 - **`protected void finalize() throws Throwable`**
   当垃圾回收器确定该对象不再被引用时调用（Java 9后已废弃）。
 
 ### == 与 equals 有什么区别？
 
-#### **1. 基本数据类型（8种：int、char等）**
+**1. 基本数据类型（8种：int、char等）**
 
 - **`==`**：比较**值**是否相等
 - **`equals()`**：不存在，基本类型没有方法
 
-#### **2. 普通对象（未重写equals）**
+**2. 普通对象（未重写equals）**
 
 - **`==`**：比较**内存地址**是否相同（是否同一个对象）
 - **`equals()`**：默认与`==`相同，比较**内存地址**
 
-#### **3. String字符串**
+**3. String字符串**
 
 - **`==`**：比较**内存地址**
   - 字面量赋值：如果字符串常量池已存在，则复用同一对象
   - `new String()`：创建新对象，地址不同
 - **`equals()`**：比较**内容**（字符序列）是否相同
 
-#### **4. 包装类型（Integer、Long等）**
+**4. 包装类型（Integer、Long等）**
 
 - **`==`**：比较**内存地址**
   - 注意：-128~127有缓存，相同值可能指向同一对象
   - 超出范围或`new`创建的都是新对象
 - **`equals()`**：比较**包装的基本值**是否相等
 
-#### **5. 枚举类型（Enum）**
+**5. 枚举类型（Enum）**
 
 - **`==`**：比较**内存地址**（枚举常量是单例，相同枚举值地址相同）
 - **`equals()`**：通常与`==`结果相同，但建议用`==`（更高效）
 
-#### **6. 数组**
+**6. 数组**
 
 - **`==`**：比较**内存地址**（是否同一个数组对象）
 - **`equals()`**：默认与`==`相同，未重写，比较**内存地址**
@@ -522,20 +525,20 @@ Object类是Java中所有类的超类，每个类都直接或间接继承Object�
 
 ### java 里 string的常用方法有哪些？
 
-#### **1. 字符串长度与判空**
+**1. 字符串长度与判空**
 
 - `length()` - 返回字符串长度
 - `isEmpty()` - 判断字符串是否为空（长度为0）
 - `isBlank()` - 判断字符串是否为空或只包含空白字符（Java 11+）
 
-#### **2. 查找与定位**
+**2. 查找与定位**
 
 - `charAt(int index)` - 返回指定索引处的字符
 - `indexOf(String str)` - 返回指定子字符串第一次出现的索引
 - `lastIndexOf(String str)` - 返回指定子字符串最后一次出现的索引
 - `contains(CharSequence s)` - 判断是否包含指定字符序列
 
-#### **3. 比较与判断**
+**3. 比较与判断**
 
 - `equals(Object obj)` - 比较字符串内容是否相等
 - `equalsIgnoreCase(String str)` - 忽略大小写比较
@@ -543,44 +546,44 @@ Object类是Java中所有类的超类，每个类都直接或间接继承Object�
 - `endsWith(String suffix)` - 判断是否以指定后缀结尾
 - `compareTo(String str)` - 按字典顺序比较字符串
 
-#### **4. 截取与拆分**
+**4. 截取与拆分**
 
 - `substring(int beginIndex)` - 从指定位置截取到末尾
 - `substring(int beginIndex, int endIndex)` - 截取指定范围的子串
 - `split(String regex)` - 根据正则表达式拆分字符串
 - `split(String regex, int limit)` - 限制拆分次数
 
-#### **5. 大小写转换**
+**5. 大小写转换**
 
 - `toLowerCase()` - 转换为小写
 - `toUpperCase()` - 转换为大写
 
-#### **6. 去除空白**
+**6. 去除空白**
 
 - `trim()` - 去除字符串两端空白字符（空格、制表符等）
 - `strip()` - 去除两端空白字符（Java 11+，支持Unicode空白）
 
-#### **7. 替换与修改**
+**7. 替换与修改**
 
 - `replace(char oldChar, char newChar)` - 替换所有匹配字符
 - `replace(CharSequence target, CharSequence replacement)` - 替换所有匹配序列
 - `replaceAll(String regex, String replacement)` - 用正则替换所有匹配
 - `replaceFirst(String regex, String replacement)` - 替换第一个匹配
 
-#### **8. 连接与格式化**
+**8. 连接与格式化**
 
 - `concat(String str)` - 连接字符串
 - `format(String format, Object... args)` - 格式化字符串（静态方法）
 - `join(CharSequence delimiter, CharSequence... elements)` - 用分隔符连接多个字符串（静态方法）
 
-#### **9. 类型转换**
+**9. 类型转换**
 
 - `valueOf(Object obj)` - 将各种类型转换为字符串（静态方法）
 - `toCharArray()` - 将字符串转换为字符数组
 - `getBytes()` - 将字符串转换为字节数组（使用平台默认编码）
 - `getBytes(String charsetName)` - 使用指定编码转换为字节数组
 
-#### **10. 其他常用方法**
+**10. 其他常用方法**
 
 - `matches(String regex)` - 判断字符串是否匹配正则表达式
 - `repeat(int count)` - 重复字符串指定次数（Java 11+）
