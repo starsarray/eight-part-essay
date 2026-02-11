@@ -689,9 +689,80 @@ new ThreadPoolExecutor(
 ### 线程池中shutdown ()，shutdownNow()这两个方法有什么作用？
 
 - shutdown使用了以后会置状态为SHUTDOWN，正在执行的任务会继续执行下去，没有被执行的则中断。此时，则不能再往线程池中添加任何任务，否则将会抛出 RejectedExecutionException 异常
-- 而 shutdownNow 为STOP，并试图停止所有正在执行的线程，不再处理还在池队列中等待的任务，当然，它会返回那些未执行的任务。 它试图终止线程的方法是通过调用 Thread.interrupt() 方法来实现的，但是这种方法的作用有限，如果线程中没有sleep 、wait、Condition、定时锁等应用, interrupt()方法是无法中断当前的线程的。所以，ShutdownNow()并不代表线程池就一定立即就能退出，它可能必须要等待所有正在执行的任务都执行完成了才能退出。
+-  shutdownNow 为STOP，并试图停止所有正在执行的线程，会返回那些未执行的任务，不再处理还在池队列中等待的任务。 它试图终止线程的方法是通过调用 Thread.interrupt() 方法来实现的，任务能不能被中断取决于它自己有没有响应中断信号。
 
+### 提交给线程池中的任务可以被撤回吗？
 
+可以，当向线程池提交任务时，会得到一个`Future`对象。这个`Future`对象提供了几种方法来管理任务的执行，包括取消任务。
 
+取消任务的主要方法是`Future`接口中的`cancel(boolean mayInterruptIfRunning)`方法。这个方法尝试取消执行的任务。参数`mayInterruptIfRunning`指示是否允许中断正在执行的任务。如果设置为`true`，则表示如果任务已经开始执行，那么允许中断任务；如果设置为`false`，任务已经开始执行则不会被中断。
 
+### 多线程打印奇偶数，怎么控制打印的顺序
 
+可以利用wait()和notify()来控制线程的执行顺序。
+
+```java
+public class PrintOddEven {
+    private static final Object lock = new Object();
+    private static int count = 1;
+    private static final int MAX_COUNT = 10;
+
+    public static void main(String[] args) {
+        Runnable printOdd = () -> {
+            synchronized (lock) {
+                while (count <= MAX_COUNT) {
+                    if (count % 2 != 0) {
+                        System.out.println(Thread.currentThread().getName() + ": " + count++);
+                        lock.notify();
+                    } else {
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        };
+
+        Runnable printEven = () -> {
+            synchronized (lock) {
+                while (count <= MAX_COUNT) {
+                    if (count % 2 == 0) {
+                        System.out.println(Thread.currentThread().getName() + ": " + count++);
+                        lock.notify();
+                    } else {
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        };
+
+        Thread oddThread = new Thread(printOdd, "OddThread");
+        Thread evenThread = new Thread(printEven, "EvenThread");
+
+        oddThread.start();
+        evenThread.start();
+    }
+}
+```
+
+### 单例模型既然已经用了synchronized，为什么还要在加volatile？
+
+`volatile` 确保了对象引用的可见性和创建过程的有序性，避免了由于指令重排序而导致的错误。
+
+`instance = new Singleton();` 这行代码并不是一个原子操作，它实际上可以分解为以下几个步骤：
+
+- 分配内存空间。
+- 实例化对象。
+- 将对象引用赋值给 `instance`。
+
+由于 Java 内存模型允许编译器和处理器对指令进行重排序，在没有 `volatile` 的情况下，可能会出现重排序，例如先将对象引用赋值给 `instance`，但对象的实例化操作尚未完成。
+
+这样，其他线程在检查 `instance == null` 时，会认为单例已经创建，从而得到一个未完全初始化的对象，导致错误。
+
+`volatile` 可以保证变量的可见性和禁止指令重排序。它确保对 `instance` 的修改对所有线程都是可见的，并且保证了上述三个步骤按顺序执行，避免了在单例创建过程中因指令重排序而导致的问题。
